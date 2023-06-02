@@ -5,9 +5,11 @@
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
+#include <pthread.h>
 
 #define PORT 8080
 #define BUFFER_SIZE 1024
+#define THREAD_COUNT 5
 
 int main() {
     int sock = 0, valread;

@@ -17,5 +17,11 @@ $(SERVER_TARGET): $(SERVER_SRC)
 $(CLIENT_TARGET): $(CLIENT_SRC)
 	$(CC) $(CFLAGS) $^ -o $@
 
+run-server: $(SERVER_TARGET)
+	./$(SERVER_TARGET)
+
+run-client: $(CLIENT_TARGET)
+	./$(CLIENT_TARGET)
+
 clean:
 	rm -f $(SERVER_TARGET) $(CLIENT_TARGET)
