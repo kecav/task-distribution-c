@@ -4,8 +4,8 @@ CFLAGS = -Wall -Wextra
 SERVER_SRC = ./Server/server.c
 CLIENT_SRC = ./Client/client.c
 
-SERVER_TARGET = server
-CLIENT_TARGET = client
+SERVER_TARGET = ./Server/server
+CLIENT_TARGET = ./Client/client
 
 .PHONY: all clean
 
