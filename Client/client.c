@@ -6,10 +6,34 @@
 #include <netinet/in.h>
 #include <arpa/inet.h>
 #include <pthread.h>
+#include <dlfcn.h> // to link other file
 
 #define PORT 8080
 #define BUFFER_SIZE 1024
 #define THREAD_COUNT 5
+
+void pthread_function(){
+    // void* handle = dlopen("./thread.so", RTLD_LAZY);   // Load shared library
+    // if (handle) {
+    //     void (*function)() = dlsym(handle, "function_name");   // Get function pointer of the other fi
+    //     if (function) {
+    //         (*function)();   // Call the function
+    //     }
+    //     dlclose(handle);   // Close the shared library
+    // }
+
+    
+}
+
+void pthread_handler(){
+    pthread_t threads[THREAD_COUNT];
+
+    for(int i=0; i<THREAD_COUNT; i++)
+        pthread_create(&threads[i], NULL, pthread_function, NULL);
+
+    for(int i=0; i<THREAD_COUNT; i++)
+        pthread_join(threads[i], NULL);
+}
 
 int main() {
     int sock = 0, valread;
