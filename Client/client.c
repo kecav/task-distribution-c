@@ -6,39 +6,51 @@
 #include <netinet/in.h>
 #include <arpa/inet.h>
 #include <pthread.h>
-#include <dlfcn.h> // to link other file
+#include <dirent.h>
 
 #define PORT 8080
 #define BUFFER_SIZE 1024
-#define THREAD_COUNT 5
 
-void pthread_function(){
-    // void* handle = dlopen("./thread.so", RTLD_LAZY);   // Load shared library
-    // if (handle) {
-    //     void (*function)() = dlsym(handle, "function_name");   // Get function pointer of the other fi
-    //     if (function) {
-    //         (*function)();   // Call the function
-    //     }
-    //     dlclose(handle);   // Close the shared library
-    // }
+// search file name from directory
+void listMatchingFiles(const char *filename, int sock) {
+    DIR *directory;
+    struct dirent *entry;
 
-    
+    directory = opendir("../Input/");
+    if (directory == NULL) {
+        printf("Error opening directory.\n");
+
+        // Send message to the server
+        char *message = "Could not find the specified file.";
+        send(sock, message, strlen(message), 0);
+        return;
+    }
+
+    while ((entry = readdir(directory)) != NULL) {
+        if (strstr(entry->d_name, filename) != NULL) {
+            printf("%s\n", entry->d_name);
+        }
+    }
+
+    closedir(directory);
 }
 
-void pthread_handler(){
-    pthread_t threads[THREAD_COUNT];
 
-    for(int i=0; i<THREAD_COUNT; i++)
-        pthread_create(&threads[i], NULL, pthread_function, NULL);
+// run shell command to execute c code
+void compile_files(){
+    // Compile the C file
+    system("gcc process_csv.c -o process_csv");
 
-    for(int i=0; i<THREAD_COUNT; i++)
-        pthread_join(threads[i], NULL);
+    // Execute the compiled file and redirect the output
+    system("./process_csv > ../Output/data.txt");
+
 }
 
+// main
 int main() {
     int sock = 0, valread;
     struct sockaddr_in serv_addr;
-    char message[BUFFER_SIZE] = {0};
+    // char message[BUFFER_SIZE] = {0};
     char buffer[BUFFER_SIZE] = {0};
 
     // Create a socket
@@ -65,25 +77,23 @@ int main() {
 
     // Interactive communication with the server
     while (1) {
-        printf("Enter a message (or 'exit' to quit): ");
-        fgets(message, BUFFER_SIZE, stdin);
-        message[strcspn(message, "\n")] = '\0';
-
-        // Send message to the server
-        send(sock, message, strlen(message), 0);
-        printf("Message sent to the server\n");
-
-        // Check if the user wants to exit
-        if (strcmp(message, "exit") == 0) {
-            break;
-        }
-
-        // Receive response from the server
-        valread = recv(sock, buffer, BUFFER_SIZE, 0);
-        printf("Response from server: %s\n", buffer);
-
+        
         // Clear the buffer
         memset(buffer, 0, BUFFER_SIZE);
+        // Receive response from the server
+        valread = recv(sock, buffer, BUFFER_SIZE, 0);
+
+        // if server exits
+        if(strcmp(buffer, "exit")==0)
+            break;
+        
+        // printing the received filename
+        buffer[strcspn(buffer, "\n")] = '\0';  // Remove trailing newline character
+        printf("Received filename : %s\n", buffer);
+
+        // check if file exists in directory
+        listMatchingFiles(buffer, sock);
+        printf("Waiting for another file...\n");
     }
 
     // Close the socket

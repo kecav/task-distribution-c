@@ -14,7 +14,6 @@ int main() {
     struct sockaddr_in address;
     int addrlen = sizeof(address);
     char buffer[BUFFER_SIZE] = {0};
-    char *response = "Server received your message.";
 
     // Create a socket
     if ((server_fd = socket(AF_INET, SOCK_STREAM, 0)) == 0) {
@@ -54,20 +53,33 @@ int main() {
         exit(EXIT_FAILURE);
     }
 
+    // Header message on server side
+    printf("\n");
+    printf("Enter the file name from `Input` directory to be processed : ");
+
+
     // Receive messages from the client
     while (1) {
         memset(buffer, 0, BUFFER_SIZE);
+        // Reads file name by server
+        fgets(buffer, BUFFER_SIZE, stdin);
+        // Sends file to client to process
+        send(new_socket, buffer, strlen(buffer), 0);
+
+        if(strcmp(buffer, "exit") ==0)
+            break;
+
         valread = recv(new_socket, buffer, BUFFER_SIZE, 0);
         if (valread <= 0) {
             printf("Connection closed by client.\n");
             break;
         }
 
-        printf("Received message from client: %s\n", buffer);
-
-        // Send response back to the client
-        send(new_socket, response, strlen(response), 0);
-        printf("Response sent to client.\n");
+        // client responses back `done` if everything goes right.
+        if(strcmp(buffer, "done") == 0)
+            printf("Output has been stored in `Output` directory.\n");
+        else 
+            printf("Could not process csv file. Try again..\n");
     }
 
     // Close the socket

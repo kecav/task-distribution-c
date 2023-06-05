@@ -1,2 +1,5 @@
 ./Server/server
 ./Client/client
+process_csv
+system
+a.out
